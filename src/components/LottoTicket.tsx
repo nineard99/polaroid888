@@ -21,15 +21,15 @@ type Props = {
   color: TicketColor;
   number: string;
   dateLabel: string;
-  draw?: string;
-  set?: string;
+  /** ข้อความแถวกลางสลาก — ค่าเริ่มต้น "งวด 1 / ชุดที่ 1" */
+  info?: string[];
   badge?: string;
   photo?: React.ReactNode;
   roll?: boolean;
   className?: string;
 };
 
-export function LottoTicket({ color, number, dateLabel, draw = "1", set = "1", badge, photo, roll, className = "" }: Props) {
+export function LottoTicket({ color, number, dateLabel, info = ["งวด 1", "ชุดที่ 1"], badge, photo, roll, className = "" }: Props) {
   const c = PALETTE[color];
   return (
     <div
@@ -68,9 +68,14 @@ export function LottoTicket({ color, number, dateLabel, draw = "1", set = "1", b
         {dateLabel}
       </p>
 
-      <div className="absolute top-[47%] left-[37%] flex w-[52%] justify-between font-thai text-[5cqw] font-bold">
-        <span className="pop-text" style={{ color: c.text, "--stroke": "var(--navy)" } as React.CSSProperties}>งวด {draw}</span>
-        <span className="pop-text" style={{ color: c.text, "--stroke": "var(--navy)" } as React.CSSProperties}>ชุดที่ {set}</span>
+      <div
+        className={`absolute top-[47%] left-[37%] flex w-[52%] font-thai text-[5cqw] font-bold ${info.length > 1 ? "justify-between" : "justify-center"}`}
+      >
+        {info.map((t) => (
+          <span key={t} className="pop-text" style={{ color: c.text, "--stroke": "var(--navy)" } as React.CSSProperties}>
+            {t}
+          </span>
+        ))}
       </div>
 
       {/* บาร์โค้ด */}

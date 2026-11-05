@@ -353,7 +353,7 @@ function Success({
         transition={{ type: "spring", bounce: 0.45, delay: 0.15 }}
         className="mt-6"
       >
-        <LottoTicket color="yellow" number="XXXXXX" dateLabel={englishDate(date)} draw={time} />
+        <LottoTicket color="yellow" number="XXXXXX" dateLabel={englishDate(date)} info={[`เวลา ${time}`]} />
       </motion.div>
       <motion.dl
         initial={{ opacity: 0, y: 20 }}
@@ -366,7 +366,6 @@ function Success({
         <Row label="วันที่" value={thaiDateLong(date)} />
         <Row label="เวลา" value={`${time}${slot ? `–${slot.end}` : ""} น.`} />
       </motion.dl>
-      <p className="mt-4 text-sm font-semibold text-navy">📸 แคปหน้าจอนี้เก็บไว้ ทีมงานจะตรวจสลิปและติดต่อกลับ</p>
     </motion.div>
   );
 }
