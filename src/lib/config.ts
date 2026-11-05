@@ -23,7 +23,7 @@ export const SCHEDULE = {
   daysAhead: Number(process.env.NEXT_PUBLIC_DAYS_AHEAD ?? 30),
   // ช่วงวันที่เปิดรับ (YYYY-MM-DD) — ไม่ตั้ง = ทุกวันตั้งแต่วันนี้
   startDate: process.env.NEXT_PUBLIC_START_DATE ?? "",
-  endDate: process.env.NEXT_PUBLIC_END_DATE ?? "",
+  endDate: process.env.NEXT_PUBLIC_END_DATE || "2026-11-12",
 };
 
 export const TIMEZONE = "Asia/Bangkok";

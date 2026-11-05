@@ -121,6 +121,15 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     }
   }
 
+  if (dates.length === 0) {
+    return (
+      <div className="rounded-2xl border border-line bg-white p-6 text-center">
+        <p className="font-display text-xl text-ink">ปิดรับจองแล้ว</p>
+        <p className="mt-1 text-sm text-ink-soft">ขอบคุณทุกคนที่มาร่วมสนุกกับเรา 🎫</p>
+      </div>
+    );
+  }
+
   if (done) {
     const slot = slots?.find((s) => s.start === time);
     return (
