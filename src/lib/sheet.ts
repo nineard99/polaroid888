@@ -26,6 +26,7 @@ export async function getBookedTimes(date: string): Promise<string[]> {
 export type BookingPayload = {
   name: string;
   phone: string;
+  ig: string;
   date: string;
   time: string;
   amount: number;

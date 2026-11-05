@@ -35,6 +35,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [ig, setIg] = useState("");
   const [date, setDate] = useState(dates[0] ?? "");
   const [time, setTime] = useState("");
   const [slip, setSlip] = useState<File | null>(null);
@@ -50,7 +51,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [done, setDone] = useState<{ bookingId: string } | null>(null);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (!date) return;
@@ -98,6 +99,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     const body = new FormData();
     body.set("name", name);
     body.set("phone", phone);
+    body.set("ig", ig);
     body.set("date", date);
     body.set("time", time);
     body.set("slip", slip);
@@ -113,7 +115,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
         }
         throw new Error(json.error || "จองไม่สำเร็จ");
       }
-      setDone({ bookingId: json.bookingId });
+      setDone(true);
       topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       setError((err as Error).message);
@@ -135,7 +137,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     <div ref={topRef} className="scroll-mt-6">
       <AnimatePresence mode="wait">
         {done ? (
-          <Success key="done" bookingId={done.bookingId} name={name} date={date} time={time} slots={slots} />
+          <Success key="done" name={name} ig={ig} date={date} time={time} slots={slots} />
         ) : (
           <motion.form key="form" exit={{ opacity: 0, scale: 0.95 }} onSubmit={onSubmit} className="space-y-7">
             <Step n={1} title="ข้อมูลผู้จอง">
@@ -165,6 +167,21 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
                     className="input"
                     autoComplete="tel"
                   />
+                </Field>
+                <Field label="IG" optional>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 font-semibold text-navy/50">@</span>
+                    <input
+                      maxLength={31}
+                      value={ig}
+                      onChange={(e) => setIg(e.target.value.replace(/[^A-Za-z0-9._]/g, ""))}
+                      placeholder="instagram"
+                      className="input pl-9"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                  </div>
                 </Field>
               </div>
             </Step>
@@ -307,20 +324,19 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
 }
 
 function Success({
-  bookingId,
   name,
+  ig,
   date,
   time,
   slots,
 }: {
-  bookingId: string;
   name: string;
+  ig: string;
   date: string;
   time: string;
   slots: Slot[] | null;
 }) {
   const slot = slots?.find((s) => s.start === time);
-  const ticketNo = bookingId.replace(/[^0-9A-Z]/gi, "").slice(-6).toUpperCase();
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
       <motion.h3
@@ -337,7 +353,7 @@ function Success({
         transition={{ type: "spring", bounce: 0.45, delay: 0.15 }}
         className="mt-6"
       >
-        <LottoTicket color="yellow" number={ticketNo} dateLabel={englishDate(date)} draw={time} roll />
+        <LottoTicket color="yellow" number="XXXXXX" dateLabel={englishDate(date)} draw={time} />
       </motion.div>
       <motion.dl
         initial={{ opacity: 0, y: 20 }}
@@ -345,8 +361,8 @@ function Success({
         transition={{ delay: 0.5 }}
         className="pop-box mt-8 space-y-2 rounded-2xl bg-cream p-5 text-left text-sm"
       >
-        <Row label="รหัสการจอง" value={bookingId} strong />
         <Row label="ชื่อ" value={name} />
+        {ig && <Row label="IG" value={`@${ig}`} />}
         <Row label="วันที่" value={thaiDateLong(date)} />
         <Row label="เวลา" value={`${time}${slot ? `–${slot.end}` : ""} น.`} />
       </motion.dl>
@@ -378,20 +394,27 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, optional, children }: { label: string; optional?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-semibold text-navy">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-navy">
+        {label}
+        {optional ? (
+          <span className="ml-1 font-normal text-navy/50">(ไม่บังคับ)</span>
+        ) : (
+          <span className="ml-0.5 text-pink">*</span>
+        )}
+      </span>
       {children}
     </label>
   );
 }
 
-function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 border-b-2 border-dashed border-navy/20 pb-2">
       <dt className="text-navy/70">{label}</dt>
-      <dd className={strong ? "font-pop text-pink" : "font-semibold text-navy"}>{value}</dd>
+      <dd className="font-semibold text-navy">{value}</dd>
     </div>
   );
 }

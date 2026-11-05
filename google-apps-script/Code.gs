@@ -8,7 +8,8 @@
  */
 
 var SHEET_NAME = 'Bookings';
-var HEADERS = ['เวลาที่จอง', 'รหัสการจอง', 'ชื่อ', 'เบอร์โทร', 'วันที่ถ่าย', 'เวลาถ่าย', 'ยอดเงิน', 'สลิป', 'สถานะ'];
+// คอลัมน์ใหม่ต่อท้ายเสมอ ชีตเดิมจะได้ไม่เพี้ยน
+var HEADERS = ['เวลาที่จอง', 'รหัสการจอง', 'ชื่อ', 'เบอร์โทร', 'วันที่ถ่าย', 'เวลาถ่าย', 'ยอดเงิน', 'สลิป', 'สถานะ', 'IG'];
 var COL = { date: 4, time: 5, status: 8 }; // index (0-based) ใน HEADERS
 var CANCELLED = 'ยกเลิก';
 var TZ = 'Asia/Bangkok';
@@ -61,6 +62,7 @@ function book_(b) {
       b.amount,
       file.getUrl(),
       'รอตรวจสลิป',
+      b.ig ? '@' + b.ig : '',
     ]];
     // ตั้งเป็น text ก่อน กัน Sheets แปลงวันที่/เบอร์โทรเอง
     sheet.getRange(row, 1, 1, HEADERS.length).setNumberFormat('@').setValues(values);
@@ -109,6 +111,10 @@ function getSheet_() {
       .requireValueInList(['รอตรวจสลิป', 'ยืนยันแล้ว', 'ถ่ายเสร็จแล้ว', CANCELLED], true)
       .build();
     sheet.getRange(2, COL.status + 1, sheet.getMaxRows() - 1, 1).setDataValidation(rule);
+  }
+  // ชีตที่สร้างไว้ก่อนเพิ่มคอลัมน์ใหม่ → เติมหัวตารางให้ครบ
+  if (sheet.getRange(1, HEADERS.length).getValue() !== HEADERS[HEADERS.length - 1]) {
+    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]).setFontWeight('bold');
   }
   return sheet;
 }

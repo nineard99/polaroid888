@@ -18,12 +18,14 @@ export async function POST(request: Request) {
 
   const name = String(form.get("name") ?? "").trim();
   const phone = String(form.get("phone") ?? "").replace(/\D/g, "");
+  const ig = String(form.get("ig") ?? "").trim().replace(/^@+/, "");
   const date = String(form.get("date") ?? "");
   const time = String(form.get("time") ?? "");
   const slip = form.get("slip");
 
   if (name.length < 2 || name.length > 100) return bad("กรุณากรอกชื่อ");
   if (!/^0\d{8,9}$/.test(phone)) return bad("เบอร์โทรไม่ถูกต้อง");
+  if (ig && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return bad("ชื่อ IG ไม่ถูกต้อง");
   if (!isBookableDate(date)) return bad("วันที่นี้ไม่เปิดรับจอง");
   if (!isValidSlot(time) || isPastSlot(date, time)) return bad("เวลานี้จองไม่ได้");
   if (!(slip instanceof File) || slip.size === 0) return bad("กรุณาแนบสลิป");
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
     const result = await createBooking({
       name,
       phone,
+      ig,
       date,
       time,
       amount: SHOP.price,
@@ -48,7 +51,7 @@ export async function POST(request: Request) {
       console.error("booking script error", result.error);
       return bad("บันทึกการจองไม่สำเร็จ ลองใหม่อีกครั้ง", 502);
     }
-    return Response.json({ ok: true, bookingId: result.data.bookingId });
+    return Response.json({ ok: true });
   } catch (err) {
     console.error("booking error", err);
     return bad("บันทึกการจองไม่สำเร็จ ลองใหม่อีกครั้ง", 502);
