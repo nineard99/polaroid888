@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# โพลารอยด์ 888 — เว็บพรีออเดอร์จองคิวถ่ายรูป
 
-## Getting Started
+Next.js 16 (deploy บน Vercel) + Google Sheet เป็นฐานข้อมูลผ่าน Google Apps Script
 
-First, run the development server:
+- เลือกวัน + เวลา 17:00–20:00 ทุกวัน (คิวละ 45 นาที: 17:00 / 17:45 / 18:30 / 19:15)
+- กรอกชื่อ เบอร์โทร → สแกน QR พร้อมเพย์ → แนบสลิป
+- **กันจองเวลาซ้ำ**: Apps Script ใช้ `LockService` เช็กแล้วบันทึกในจังหวะเดียว ถ้าสองคนกดพร้อมกัน คนที่สองจะได้ข้อความ "เวลานี้มีคนจองไปแล้ว"
+- ข้อมูลเข้า Google Sheet แท็บ `Bookings` · สลิปเก็บในโฟลเดอร์ Google Drive (มีลิงก์ในชีต)
+- ทีมงานเปลี่ยนคอลัมน์ **สถานะ** ได้: `รอตรวจสลิป / ยืนยันแล้ว / ถ่ายเสร็จแล้ว / ยกเลิก` — ตั้งเป็น **ยกเลิก** แล้วคิวนั้นจะว่างให้คนอื่นจองได้ทันที
+
+## 1. ตั้งค่า Google Sheet (ครั้งเดียว)
+
+1. สร้าง Google Sheet ใหม่ → เมนู **Extensions → Apps Script**
+2. ลบโค้ดเดิม แล้ววางเนื้อหาจาก `google-apps-script/Code.gs`
+3. **Project Settings (⚙️) → Script Properties → Add**: `SECRET` = รหัสลับยาว ๆ (เช่นจาก `openssl rand -hex 24`)
+4. กลับไปหน้า Editor เลือกฟังก์ชัน `setup` → **Run** → อนุญาตสิทธิ์ (Sheets + Drive)
+5. **Deploy → New deployment → Web app**
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+   - กด Deploy แล้วคัดลอก URL ที่ลงท้ายด้วย `/exec`
+
+> แก้ `Code.gs` ภายหลัง ต้อง **Deploy → Manage deployments → Edit → New version** ทุกครั้ง URL เดิมถึงจะใช้โค้ดใหม่
+
+## 2. รันในเครื่อง
 
 ```bash
+cp .env.example .env.local   # ใส่ GOOGLE_SCRIPT_URL, GOOGLE_SCRIPT_SECRET, ราคา, พร้อมเพย์
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 3. Deploy Vercel
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Push ขึ้น GitHub → Vercel **Add New Project** → import repo
+2. ใส่ Environment Variables ตาม `.env.example`
+3. Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| ตัวแปร | ความหมาย |
+|---|---|
+| `GOOGLE_SCRIPT_URL` | URL Web app (`.../exec`) |
+| `GOOGLE_SCRIPT_SECRET` | ตรงกับ Script Property `SECRET` |
+| `NEXT_PUBLIC_PRICE` | ราคาแพ็กเกจ (บาท) — ใส่ใน QR อัตโนมัติ |
+| `NEXT_PUBLIC_PROMPTPAY_ID` | เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป `public/payment-qr.png` |
+| `NEXT_PUBLIC_CONTACT` | ช่องทางติดต่อท้ายเว็บ |
+| `NEXT_PUBLIC_START_DATE` / `END_DATE` | ช่วงวันที่เปิดจอง (YYYY-MM-DD) |
+| `NEXT_PUBLIC_DAYS_AHEAD` | จองล่วงหน้าได้กี่วัน (ค่าเริ่มต้น 30) |
 
-## Learn More
+ค่า `NEXT_PUBLIC_*` ถูกฝังตอน build — แก้แล้วต้อง **Redeploy**
 
-To learn more about Next.js, take a look at the following resources:
+## ปรับเวลา/แพ็กเกจ
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+แก้ที่ `src/lib/config.ts` (`SCHEDULE`, `PACKAGE`, `SHOP`)
