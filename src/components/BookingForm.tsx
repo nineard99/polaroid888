@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { englishDate, thaiDateChip, thaiDateLong } from "@/lib/thaiDate";
+import { ticketColor, TICKETS_PER_BOOKING } from "@/lib/lottery";
+import { LotteryPicker, type Ticket } from "./LotteryPicker";
 import { LottoTicket } from "./LottoTicket";
 import { PaymentQR } from "./PaymentQR";
 
@@ -16,7 +18,7 @@ type Props = {
 };
 
 const MAX_SLIP_MB = 4;
-const STEP_COLORS = ["var(--pink)", "var(--blue)", "var(--lime)", "var(--red)", "var(--purple)"];
+const STEP_COLORS = ["var(--pink)", "var(--blue)", "var(--lime)", "var(--red)", "var(--purple)", "var(--navy)"];
 
 function dateList(min: string, max: string) {
   const out: string[] = [];
@@ -38,6 +40,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
   const [ig, setIg] = useState("");
   const [date, setDate] = useState(dates[0] ?? "");
   const [time, setTime] = useState("");
+  const [numbers, setNumbers] = useState<string[]>([]);
   const [slip, setSlip] = useState<File | null>(null);
   const [slipPreview, setSlipPreview] = useState("");
 
@@ -48,6 +51,11 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
   const current = slotsResult?.key === requestKey ? slotsResult : undefined;
   const slots = current?.slots ?? null;
   const slotsError = current?.error ?? "";
+
+  // เลขลอตเตอรี่ที่ยังว่าง — โหลดใหม่เมื่อ lottoKey เปลี่ยน
+  const [lottoKey, setLottoKey] = useState(0);
+  const [lottoResult, setLottoResult] = useState<{ key: number; tickets?: Ticket[]; error?: string }>();
+  const lotto = lottoResult?.key === lottoKey ? lottoResult : undefined;
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -69,6 +77,22 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
       cancelled = true;
     };
   }, [date, requestKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/lottery", { cache: "no-store" })
+      .then(async (res) => {
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error);
+        if (!cancelled) setLottoResult({ key: lottoKey, tickets: json.tickets });
+      })
+      .catch((err: Error) => {
+        if (!cancelled) setLottoResult({ key: lottoKey, error: err.message || "โหลดเลขลอตเตอรี่ไม่สำเร็จ" });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [lottoKey]);
 
   useEffect(() => {
     return () => {
@@ -94,6 +118,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     e.preventDefault();
     setError("");
     if (!time) return setError("กรุณาเลือกเวลา");
+    if (numbers.length !== TICKETS_PER_BOOKING) return setError(`กรุณาเลือกเลขลอตเตอรี่ให้ครบ ${TICKETS_PER_BOOKING} ใบ`);
     if (!slip) return setError("กรุณาแนบสลิปการโอน");
 
     const body = new FormData();
@@ -102,6 +127,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     body.set("ig", ig);
     body.set("date", date);
     body.set("time", time);
+    numbers.forEach((n) => body.append("numbers", n));
     body.set("slip", slip);
 
     setSubmitting(true);
@@ -109,9 +135,13 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
       const res = await fetch("/api/bookings", { method: "POST", body });
       const json = await res.json();
       if (!res.ok || !json.ok) {
-        if (res.status === 409) {
+        if (json.conflict === "time") {
           setTime("");
           setReloadKey((k) => k + 1);
+        }
+        if (json.conflict === "numbers") {
+          setNumbers((prev) => prev.filter((n) => !json.taken?.includes(n)));
+          setLottoKey((k) => k + 1);
         }
         throw new Error(json.error || "จองไม่สำเร็จ");
       }
@@ -137,7 +167,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
     <div ref={topRef} className="scroll-mt-6">
       <AnimatePresence mode="wait">
         {done ? (
-          <Success key="done" name={name} ig={ig} date={date} time={time} slots={slots} />
+          <Success key="done" name={name} ig={ig} date={date} time={time} numbers={numbers} slots={slots} />
         ) : (
           <motion.form key="form" exit={{ opacity: 0, scale: 0.95 }} onSubmit={onSubmit} className="space-y-7">
             <Step n={1} title="ข้อมูลผู้จอง">
@@ -260,11 +290,21 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
               )}
             </Step>
 
-            <Step n={4} title="ชำระเงิน">
+            <Step n={4} title={`เลือกเลขลอตเตอรี่ ${TICKETS_PER_BOOKING} ใบ`}>
+              <LotteryPicker
+                tickets={lotto?.tickets ?? null}
+                error={lotto?.error ?? ""}
+                onRetry={() => setLottoKey((k) => k + 1)}
+                selected={numbers}
+                onChange={setNumbers}
+              />
+            </Step>
+
+            <Step n={5} title="ชำระเงิน">
               <PaymentQR promptpayId={promptpayId} amount={price} />
             </Step>
 
-            <Step n={5} title="แนบสลิป">
+            <Step n={6} title="แนบสลิป">
               <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-[3px] border-dashed border-navy bg-white p-5 text-center transition-colors hover:bg-yellow/40">
                 <AnimatePresence mode="wait">
                   {slipPreview ? (
@@ -328,12 +368,14 @@ function Success({
   ig,
   date,
   time,
+  numbers,
   slots,
 }: {
   name: string;
   ig: string;
   date: string;
   time: string;
+  numbers: string[];
   slots: Slot[] | null;
 }) {
   const slot = slots?.find((s) => s.start === time);
@@ -347,14 +389,20 @@ function Success({
       >
         จองสำเร็จ! 🎉
       </motion.h3>
-      <motion.div
-        initial={{ y: 80, rotate: 8, opacity: 0 }}
-        animate={{ y: 0, rotate: -2, opacity: 1 }}
-        transition={{ type: "spring", bounce: 0.45, delay: 0.15 }}
-        className="mt-6"
-      >
-        <LottoTicket color="yellow" number="XXXXXX" dateLabel={englishDate(date)} info={[`เวลา ${time}`]} />
-      </motion.div>
+      {/* สลาก 3 ใบที่เลือก วางซ้อนกันให้เห็นเลขทุกใบ */}
+      <div className="mt-6 px-1">
+        {numbers.map((n, i) => (
+          <motion.div
+            key={n}
+            initial={{ y: 80, rotate: 8, opacity: 0 }}
+            animate={{ y: 0, rotate: i % 2 ? 1.5 : -1.5, opacity: 1 }}
+            transition={{ type: "spring", bounce: 0.45, delay: 0.15 + i * 0.15 }}
+            className={`relative ${i > 0 ? "-mt-[26%]" : ""}`}
+          >
+            <LottoTicket color={ticketColor(n)} number={n} dateLabel={englishDate(date)} info={[`เวลา ${time}`]} roll />
+          </motion.div>
+        ))}
+      </div>
       <motion.dl
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -365,6 +413,7 @@ function Success({
         {ig && <Row label="IG" value={`@${ig}`} />}
         <Row label="วันที่" value={thaiDateLong(date)} />
         <Row label="เวลา" value={`${time}${slot ? `–${slot.end}` : ""} น.`} />
+        <Row label="เลขลอตเตอรี่" value={numbers.join(", ")} />
       </motion.dl>
     </motion.div>
   );

@@ -23,19 +23,31 @@ export async function getBookedTimes(date: string): Promise<string[]> {
   return json.data.times;
 }
 
+export async function getTakenNumbers(): Promise<string[]> {
+  assertConfigured();
+  const url = new URL(SCRIPT_URL!);
+  url.searchParams.set("action", "numbers");
+  url.searchParams.set("secret", SECRET!);
+  const res = await fetch(url, { cache: "no-store", redirect: "follow" });
+  const json = (await res.json()) as ScriptResult<{ numbers: string[] }>;
+  if (!json.ok) throw new Error(json.error);
+  return json.data.numbers;
+}
+
 export type BookingPayload = {
   name: string;
   phone: string;
   ig: string;
   date: string;
   time: string;
+  numbers: string[];
   amount: number;
   slip: { base64: string; mimeType: string; fileName: string };
 };
 
 export async function createBooking(
   payload: BookingPayload,
-): Promise<ScriptResult<{ bookingId: string }>> {
+): Promise<ScriptResult<unknown>> {
   assertConfigured();
   const res = await fetch(SCRIPT_URL!, {
     method: "POST",
@@ -45,5 +57,5 @@ export async function createBooking(
     cache: "no-store",
     redirect: "follow",
   });
-  return (await res.json()) as ScriptResult<{ bookingId: string }>;
+  return (await res.json()) as ScriptResult<unknown>;
 }

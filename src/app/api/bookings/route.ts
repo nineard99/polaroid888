@@ -1,4 +1,5 @@
 import { SHOP, isBookableDate, isPastSlot, isValidSlot } from "@/lib/config";
+import { TICKETS_PER_BOOKING, isValidTicket } from "@/lib/lottery";
 import { createBooking } from "@/lib/sheet";
 
 const MAX_SLIP_BYTES = 4 * 1024 * 1024; // Vercel จำกัด body ~4.5MB
@@ -21,6 +22,7 @@ export async function POST(request: Request) {
   const ig = String(form.get("ig") ?? "").trim().replace(/^@+/, "");
   const date = String(form.get("date") ?? "");
   const time = String(form.get("time") ?? "");
+  const numbers = form.getAll("numbers").map(String);
   const slip = form.get("slip");
 
   if (name.length < 2 || name.length > 100) return bad("กรุณากรอกชื่อ");
@@ -28,6 +30,13 @@ export async function POST(request: Request) {
   if (ig && !/^[A-Za-z0-9._]{1,30}$/.test(ig)) return bad("ชื่อ IG ไม่ถูกต้อง");
   if (!isBookableDate(date)) return bad("วันที่นี้ไม่เปิดรับจอง");
   if (!isValidSlot(time) || isPastSlot(date, time)) return bad("เวลานี้จองไม่ได้");
+  if (
+    numbers.length !== TICKETS_PER_BOOKING ||
+    new Set(numbers).size !== numbers.length ||
+    !numbers.every(isValidTicket)
+  ) {
+    return bad(`กรุณาเลือกเลขลอตเตอรี่ ${TICKETS_PER_BOOKING} ใบ`);
+  }
   if (!(slip instanceof File) || slip.size === 0) return bad("กรุณาแนบสลิป");
   if (!ALLOWED_TYPES.includes(slip.type)) return bad("สลิปต้องเป็นไฟล์รูปภาพ");
   if (slip.size > MAX_SLIP_BYTES) return bad("ไฟล์สลิปใหญ่เกิน 4MB");
@@ -40,13 +49,24 @@ export async function POST(request: Request) {
       ig,
       date,
       time,
+      numbers,
       amount: SHOP.price,
       slip: { base64, mimeType: slip.type, fileName: slip.name || "slip" },
     });
 
     if (!result.ok) {
       if (result.error === "SLOT_TAKEN") {
-        return bad("ขออภัย เวลานี้มีคนจองไปแล้ว กรุณาเลือกเวลาอื่น", 409);
+        return Response.json(
+          { ok: false, conflict: "time", error: "ขออภัย เวลานี้มีคนจองไปแล้ว กรุณาเลือกเวลาอื่น" },
+          { status: 409 },
+        );
+      }
+      if (result.error.startsWith("NUMBER_TAKEN:")) {
+        const taken = result.error.slice("NUMBER_TAKEN:".length).split(",");
+        return Response.json(
+          { ok: false, conflict: "numbers", taken, error: `เลข ${taken.join(", ")} มีคนเลือกไปแล้ว กรุณาเลือกเลขใหม่` },
+          { status: 409 },
+        );
       }
       console.error("booking script error", result.error);
       return bad("บันทึกการจองไม่สำเร็จ ลองใหม่อีกครั้ง", 502);
