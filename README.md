@@ -39,7 +39,7 @@ npm run dev
 | `GOOGLE_SCRIPT_URL` | URL Web app (`.../exec`) |
 | `GOOGLE_SCRIPT_SECRET` | ตรงกับ Script Property `SECRET` |
 | `NEXT_PUBLIC_PRICE` | ราคาแพ็กเกจ (บาท) — ใส่ใน QR อัตโนมัติ |
-| `NEXT_PUBLIC_PROMPTPAY_ID` | เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป `public/payment-qr.png` |
+| `NEXT_PUBLIC_PROMPTPAY_ID` | เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป `public/payment-qr.jpg` |
 | `NEXT_PUBLIC_CONTACT` | ช่องทางติดต่อท้ายเว็บ |
 | `NEXT_PUBLIC_START_DATE` / `END_DATE` | ช่วงวันที่เปิดจอง (YYYY-MM-DD) |
 | `NEXT_PUBLIC_DAYS_AHEAD` | จองล่วงหน้าได้กี่วัน (ค่าเริ่มต้น 30) |
