@@ -7,7 +7,7 @@ import { QRCodeSVG } from "qrcode.react";
 type Props = { promptpayId: string; amount: number };
 
 /**
- * ตั้ง NEXT_PUBLIC_PROMPTPAY_ID → สร้าง QR พร้อมเพย์ใส่ยอดเงินให้อัตโนมัติ
+ * ตั้ง SHOP.promptpayId (config.ts) → สร้าง QR พร้อมเพย์ใส่ยอดเงินให้อัตโนมัติ
  * ไม่ตั้ง → ใช้รูป QR ของร้านที่ public/payment-qr.jpg แทน
  */
 export function PaymentQR({ promptpayId, amount }: Props) {

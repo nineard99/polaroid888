@@ -24,28 +24,21 @@ Next.js 16 (deploy บน Vercel) + Google Sheet เป็นฐานข้อ�
 ## 2. รันในเครื่อง
 
 ```bash
-cp .env.example .env.local   # ใส่ GOOGLE_SCRIPT_URL, GOOGLE_SCRIPT_SECRET, ราคา, พร้อมเพย์
+cp .env.example .env.local   # ใส่ GOOGLE_SCRIPT_URL, GOOGLE_SCRIPT_SECRET
 npm run dev
 ```
 
 ## 3. Deploy Vercel
 
 1. Push ขึ้น GitHub → Vercel **Add New Project** → import repo
-2. ใส่ Environment Variables ตาม `.env.example`
+2. ใส่ Environment Variables 2 ตัวตามตารางด้านล่าง
 3. Deploy
 
 | ตัวแปร | ความหมาย |
 |---|---|
 | `GOOGLE_SCRIPT_URL` | URL Web app (`.../exec`) |
 | `GOOGLE_SCRIPT_SECRET` | ตรงกับ Script Property `SECRET` |
-| `NEXT_PUBLIC_PRICE` | ราคาแพ็กเกจ (บาท) — ใส่ใน QR อัตโนมัติ |
-| `NEXT_PUBLIC_PROMPTPAY_ID` | เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป `public/payment-qr.jpg` |
-| `NEXT_PUBLIC_CONTACT` | ช่องทางติดต่อท้ายเว็บ |
-| `NEXT_PUBLIC_START_DATE` / `END_DATE` | ช่วงวันที่เปิดจอง (YYYY-MM-DD) |
-| `NEXT_PUBLIC_DAYS_AHEAD` | จองล่วงหน้าได้กี่วัน (ค่าเริ่มต้น 30) |
-
-ค่า `NEXT_PUBLIC_*` ถูกฝังตอน build — แก้แล้วต้อง **Redeploy**
 
 ## ปรับเวลา/แพ็กเกจ
 
-แก้ที่ `src/lib/config.ts` (`SCHEDULE`, `PACKAGE`, `SHOP`)
+ราคา, ช่องทางติดต่อ, วันเปิด-ปิดรับจอง, เวลา, ความยาวรอบ — แก้ที่ `src/lib/config.ts` (`SHOP`, `SCHEDULE`, `PACKAGE`) แล้ว push

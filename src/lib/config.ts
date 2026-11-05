@@ -1,12 +1,13 @@
-// ตั้งค่าหลักของร้าน — แก้ที่ไฟล์นี้ หรือผ่าน env บน Vercel
+// ตั้งค่าหลักของร้าน — แก้ที่ไฟล์นี้แล้ว push (Vercel deploy ใหม่ให้เอง)
 
 export const SHOP = {
   name: "POLAROID_888",
   instagram: "polaroid_888",
   tagline: "ถ่ายรูปในมอ ได้รูป + ได้ลุ้นลอตเตอรี่",
-  price: Number(process.env.NEXT_PUBLIC_PRICE ?? 0),
-  promptpayId: process.env.NEXT_PUBLIC_PROMPTPAY_ID ?? "",
-  contact: process.env.NEXT_PUBLIC_CONTACT ?? "",
+  price: 69,
+  // เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป public/payment-qr.jpg
+  promptpayId: "",
+  contact: "@polaroid__888",
 };
 
 export const PACKAGE = {
@@ -20,10 +21,10 @@ export const SCHEDULE = {
   closeTime: "20:00",
   slotMinutes: PACKAGE.minutes,
   // จองล่วงหน้าได้กี่วัน
-  daysAhead: Number(process.env.NEXT_PUBLIC_DAYS_AHEAD ?? 30),
+  daysAhead: 30,
   // ช่วงวันที่เปิดรับ (YYYY-MM-DD) — ไม่ตั้ง = ทุกวันตั้งแต่วันนี้
-  startDate: process.env.NEXT_PUBLIC_START_DATE ?? "",
-  endDate: process.env.NEXT_PUBLIC_END_DATE || "2026-11-12",
+  startDate: "",
+  endDate: "2026-11-12",
 };
 
 export const TIMEZONE = "Asia/Bangkok";
