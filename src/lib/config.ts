@@ -1,8 +1,8 @@
 // ตั้งค่าหลักของร้าน — แก้ที่ไฟล์นี้แล้ว push (Vercel deploy ใหม่ให้เอง)
 
 export const SHOP = {
-  name: "POLAROID_888",
-  instagram: "polaroid_888",
+  name: "POLAROID__888",
+  instagram: "polaroid__888",
   tagline: "ถ่ายรูปในมอ ได้รูป + ได้ลุ้นลอตเตอรี่",
   price: 69,
   // เบอร์/เลขบัตรพร้อมเพย์ — ว่าง = ใช้รูป public/payment-qr.jpg

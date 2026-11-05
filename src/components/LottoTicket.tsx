@@ -100,7 +100,7 @@ export function LottoTicket({ color, number, dateLabel, info = ["งวด 1", "
 
       {/* แถบข้าง IG */}
       <div className="absolute inset-y-0 right-0 flex w-[9%] items-center justify-center" style={{ background: c.side }}>
-        <span className="rotate-90 font-pop text-[3.2cqw] whitespace-nowrap tracking-wider" style={{ color: c.sideText }}>
+        <span className="rotate-90 font-pop text-[2.8cqw] whitespace-nowrap tracking-wide" style={{ color: c.sideText }}>
           IG : {SHOP.instagram.toUpperCase()}
         </span>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from "motion/react";
+import { SHOP } from "@/lib/config";
 import { LottoTicket, type TicketColor } from "./LottoTicket";
 
 type Props = { dateLabel: string; price: number };
@@ -80,7 +81,7 @@ export function Hero({ dateLabel, price }: Props) {
         className="pop-text mt-10 text-center font-pop text-[clamp(2.2rem,10vw,3.6rem)] leading-none text-pink"
         style={{ "--stroke": "var(--navy)" } as React.CSSProperties}
       >
-        POLAROID_888
+        {SHOP.name}
       </motion.h1>
       <motion.p
         initial={{ y: 10, opacity: 0 }}

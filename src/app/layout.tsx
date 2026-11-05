@@ -21,7 +21,7 @@ const bungee = Bungee({
 });
 
 export const metadata: Metadata = {
-  title: "POLAROID_888 — จองคิวถ่ายรูป",
+  title: "POLAROID__888 — จองคิวถ่ายรูป",
   description: "พรีออเดอร์ถ่ายรูปในมอ ไม่จำกัดจำนวนรูป รอบละ 30 นาที แถมลอตเตอรี่ 3 ใบ",
 };
 
