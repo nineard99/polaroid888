@@ -1,7 +1,8 @@
 // ตั้งค่าหลักของร้าน — แก้ที่ไฟล์นี้ หรือผ่าน env บน Vercel
 
 export const SHOP = {
-  name: "โพลารอยด์ 888",
+  name: "POLAROID_888",
+  instagram: "polaroid_888",
   tagline: "ถ่ายรูปในมอ ได้รูป + ได้ลุ้นลอตเตอรี่",
   price: Number(process.env.NEXT_PUBLIC_PRICE ?? 0),
   promptpayId: process.env.NEXT_PUBLIC_PROMPTPAY_ID ?? "",
@@ -9,16 +10,15 @@ export const SHOP = {
 };
 
 export const PACKAGE = {
-  minMinutes: 30,
-  maxMinutes: 45,
+  minutes: 30,
   lotteryCount: 3,
 };
 
-// เวลาเปิดรับ: 17:00 – 20:00 ทุกวัน, 1 คิวกินเวลาสูงสุด 45 นาที
+// เวลาเปิดรับ: 17:00 – 20:00 ทุกวัน, รอบละ 30 นาที
 export const SCHEDULE = {
   openTime: "17:00",
   closeTime: "20:00",
-  slotMinutes: PACKAGE.maxMinutes,
+  slotMinutes: PACKAGE.minutes,
   // จองล่วงหน้าได้กี่วัน
   daysAhead: Number(process.env.NEXT_PUBLIC_DAYS_AHEAD ?? 30),
   // ช่วงวันที่เปิดรับ (YYYY-MM-DD) — ไม่ตั้ง = ทุกวันตั้งแต่วันนี้
@@ -39,7 +39,7 @@ function toHHMM(minutes: number) {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-/** คิวทั้งหมดของวัน เช่น 17:00, 17:45, 18:30, 19:15 */
+/** คิวทั้งหมดของวัน เช่น 17:00, 17:30, ..., 19:30 */
 export function allSlots(): { start: string; end: string }[] {
   const open = toMinutes(SCHEDULE.openTime);
   const close = toMinutes(SCHEDULE.closeTime);

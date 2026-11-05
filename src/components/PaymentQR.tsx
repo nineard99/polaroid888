@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "motion/react";
 import generatePayload from "promptpay-qr";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -12,7 +13,10 @@ type Props = { promptpayId: string; amount: number };
 export function PaymentQR({ promptpayId, amount }: Props) {
   return (
     <div className="flex flex-col items-center">
-      <div className="polaroid rotate-1">
+      <motion.div
+        whileHover={{ rotate: 0, scale: 1.02 }}
+        className="rotate-1 rounded-sm border-[3px] border-navy bg-white p-3 pb-3 shadow-[5px_5px_0_var(--navy)]"
+      >
         {promptpayId ? (
           <QRCodeSVG
             value={generatePayload(promptpayId, amount > 0 ? { amount } : {})}
@@ -22,25 +26,30 @@ export function PaymentQR({ promptpayId, amount }: Props) {
           />
         ) : (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/payment-qr.jpg" alt="QR ชำระเงิน PromptPay" width={677} height={900} className="w-60 rounded-sm" />
+          <img src="/payment-qr.jpg" alt="QR ชำระเงิน PromptPay" width={677} height={900} className="w-56" />
         )}
-      </div>
-      <p className="relative -mt-8 mb-6 font-display text-sm text-ink">สแกนจ่ายผ่าน PromptPay</p>
+        <p className="mt-2 text-center font-pop text-sm text-navy">SCAN TO PAY</p>
+      </motion.div>
+
       {!promptpayId && (
         <a
           href="/payment-qr.jpg"
           download="polaroid888-qr.jpg"
-          className="mb-3 rounded-full border border-lotto px-4 py-1.5 text-sm text-lotto hover:bg-lotto hover:text-white"
+          className="pop-press mt-5 rounded-full border-[3px] border-navy bg-lime px-4 py-1.5 text-sm font-semibold text-navy shadow-[3px_3px_0_var(--navy)]"
         >
-          บันทึกรูป QR ไปสแกนในแอปธนาคาร
+          ⬇ บันทึกรูป QR ไปสแกนในแอปธนาคาร
         </a>
       )}
       {amount > 0 && (
-        <p className="text-sm text-ink-soft">
-          ยอดชำระ <span className="font-display text-xl text-lucky">{amount.toLocaleString("th-TH")}</span> บาท
+        <p className="mt-4 text-sm font-semibold text-navy">
+          ยอดชำระ{" "}
+          <span className="pop-text font-pop text-2xl text-yellow" style={{ "--stroke": "var(--navy)" } as React.CSSProperties}>
+            {amount.toLocaleString("en-US")}
+          </span>{" "}
+          บาท
         </p>
       )}
-      <p className="mt-1 text-center text-xs text-ink-soft">โอนแล้วแคปสลิป แล้วแนบในขั้นตอนถัดไป</p>
+      <p className="mt-1 text-center text-xs text-navy/70">โอนแล้วแคปสลิป แล้วแนบในขั้นตอนถัดไป</p>
     </div>
   );
 }

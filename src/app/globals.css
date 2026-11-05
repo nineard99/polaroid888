@@ -1,66 +1,122 @@
 @import "tailwindcss";
 
-/* ธีม: โพลารอยด์ + สลากกินแบ่ง (กระดาษครีม / แดงมงคล / ทอง / เขียวหมึกสลาก) */
+/* ธีม: ลอตเตอรี่ป๊อปอาร์ต POLAROID_888 — น้ำเงิน / เหลือง / ชมพู / เขียวมะนาว / แดง */
 :root {
-  --paper: #fbf6ec;
-  --paper-deep: #f3e9d4;
-  --ink: #2b1d14;
-  --ink-soft: #6b5a4c;
-  --lucky: #c8102e;
-  --lucky-dark: #9c0c23;
-  --gold: #d4a017;
-  --gold-soft: #f6e7b0;
-  --lotto: #1f6f5c;
-  --line: #e4d6bb;
+  --blue: #2236d8;
+  --yellow: #f8f46a;
+  --pink: #e5358c;
+  --lime: #a6dd5f;
+  --red: #e2474b;
+  --purple: #7a3cf0;
+  --navy: #12164a;
+  --cream: #fffdf2;
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-deep: var(--paper-deep);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-lucky: var(--lucky);
-  --color-lucky-dark: var(--lucky-dark);
-  --color-gold: var(--gold);
-  --color-gold-soft: var(--gold-soft);
-  --color-lotto: var(--lotto);
-  --color-line: var(--line);
+  --color-blue: var(--blue);
+  --color-yellow: var(--yellow);
+  --color-pink: var(--pink);
+  --color-lime: var(--lime);
+  --color-red: var(--red);
+  --color-purple: var(--purple);
+  --color-navy: var(--navy);
+  --color-cream: var(--cream);
   --font-sans: var(--font-body);
-  --font-display: var(--font-display);
+  --font-thai: var(--font-mitr);
+  --font-pop: var(--font-bungee), var(--font-mitr);
 }
 
 body {
-  background-color: var(--paper);
-  background-image:
-    radial-gradient(circle at 1px 1px, rgb(43 29 20 / 0.06) 1px, transparent 0);
-  background-size: 18px 18px;
-  color: var(--ink);
+  background-color: var(--yellow);
+  color: var(--navy);
 }
 
-/* ลายเส้นกิโยเช่แบบสลาก */
-.lotto-pattern {
-  background-color: #eaf4ef;
-  background-image:
-    repeating-linear-gradient(45deg, rgb(31 111 92 / 0.08) 0 2px, transparent 2px 8px),
-    repeating-linear-gradient(-45deg, rgb(31 111 92 / 0.08) 0 2px, transparent 2px 8px);
+/* จุดฮาล์ฟโทนเป็นตารางหมากรุก เฟดจากซ้ายไปขวา แบบบนสลาก */
+.halftone {
+  background-image: radial-gradient(circle, var(--dot, var(--blue)) 34%, transparent 38%);
+  background-size: var(--dot-size, 8px) var(--dot-size, 8px);
+  -webkit-mask-image:
+    conic-gradient(#000 25%, transparent 0 50%, #000 0 75%, transparent 0),
+    linear-gradient(to right, #000 10%, transparent 75%);
+  -webkit-mask-size: var(--check, 56px) var(--check, 56px), 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-image:
+    conic-gradient(#000 25%, transparent 0 50%, #000 0 75%, transparent 0),
+    linear-gradient(to right, #000 10%, transparent 75%);
+  mask-size: var(--check, 56px) var(--check, 56px), 100% 100%;
+  mask-composite: intersect;
 }
 
-.polaroid {
-  background: #fff;
-  padding: 12px 12px 44px;
-  box-shadow: 0 10px 30px -12px rgb(43 29 20 / 0.35), 0 2px 6px rgb(43 29 20 / 0.08);
+/* ฮาล์ฟโทนไล่ขนาดเม็ดที่มุม */
+.halftone-corner {
+  background-image: radial-gradient(circle, var(--dot, var(--pink)) 30%, transparent 34%);
+  background-size: 7px 7px;
+  -webkit-mask-image: radial-gradient(circle at 100% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(circle at 100% 0%, #000 0%, transparent 70%);
 }
 
-/* รอยปรุฉีกของสลาก */
-.perforated {
-  background-image: radial-gradient(circle, var(--paper) 5px, transparent 5.5px);
-  background-size: 16px 16px;
-  background-position: center;
-  background-repeat: repeat-y;
+/* ตัวหนังสือขอบหนาแบบป๊อป */
+.pop-text {
+  -webkit-text-stroke: 0.09em var(--stroke, var(--navy));
+  paint-order: stroke fill;
+  text-shadow: 0.06em 0.07em 0 var(--stroke, var(--navy));
+}
+
+/* กล่องขอบหนา + เงาแข็ง */
+.pop-box {
+  border: 3px solid var(--navy);
+  box-shadow: 5px 5px 0 var(--navy);
+}
+
+.pop-press {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.pop-press:active:not(:disabled) {
+  transform: translate(4px, 4px);
+  box-shadow: 1px 1px 0 var(--navy);
+}
+
+.barcode {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--navy) 0 2px,
+    transparent 2px 4px,
+    var(--navy) 4px 5px,
+    transparent 5px 7px,
+    var(--navy) 7px 10px,
+    transparent 10px 11px,
+    var(--navy) 11px 12px,
+    transparent 12px 15px
+  );
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee 22s linear infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track,
+  .spin-slow {
+    animation: none;
+  }
 }
 
 @layer components {
   .input {
-    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-base text-ink outline-none transition placeholder:text-ink-soft/50 focus:border-lucky focus:ring-2 focus:ring-lucky/20;
+    @apply w-full rounded-xl border-[3px] border-navy bg-white px-4 py-3 text-base text-navy outline-none transition placeholder:text-navy/35 focus:bg-cream focus:shadow-[4px_4px_0_var(--pink)];
   }
 }

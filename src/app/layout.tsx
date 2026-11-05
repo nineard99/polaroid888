@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans_Thai, Mitr } from "next/font/google";
+import { Bungee, IBM_Plex_Sans_Thai, Mitr } from "next/font/google";
 import "./globals.css";
 
 const body = IBM_Plex_Sans_Thai({
@@ -8,25 +8,31 @@ const body = IBM_Plex_Sans_Thai({
   weight: ["400", "500", "600"],
 });
 
-const display = Mitr({
-  variable: "--font-display",
+const mitr = Mitr({
+  variable: "--font-mitr",
   subsets: ["thai", "latin"],
-  weight: ["500", "600"],
+  weight: ["500", "600", "700"],
+});
+
+const bungee = Bungee({
+  variable: "--font-bungee",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
-  title: "โพลารอยด์ 888 — จองคิวถ่ายรูป",
-  description: "พรีออเดอร์ถ่ายรูปในมอ ไม่จำกัดจำนวนรูป 30–45 นาที แถมลอตเตอรี่ 3 ใบ",
+  title: "POLAROID_888 — จองคิวถ่ายรูป",
+  description: "พรีออเดอร์ถ่ายรูปในมอ ไม่จำกัดจำนวนรูป รอบละ 30 นาที แถมลอตเตอรี่ 3 ใบ",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#c8102e",
+  themeColor: "#2236d8",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="th" className={`${body.variable} ${display.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans">{children}</body>
+    <html lang="th" className={`${body.variable} ${mitr.variable} ${bungee.variable} h-full overflow-x-clip antialiased`}>
+      <body className="min-h-full overflow-x-clip font-sans">{children}</body>
     </html>
   );
 }

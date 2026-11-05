@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "motion": "^14.9.1",
     "next": "16.4.5",
     "promptpay-qr": "^0.5.0",
     "qrcode.react": "^4.2.0",

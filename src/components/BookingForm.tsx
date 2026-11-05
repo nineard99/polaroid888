@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { englishDate, thaiDateChip, thaiDateLong } from "@/lib/thaiDate";
+import { LottoTicket } from "./LottoTicket";
 import { PaymentQR } from "./PaymentQR";
 
 type Slot = { start: string; end: string; available: boolean; past: boolean };
@@ -13,6 +16,7 @@ type Props = {
 };
 
 const MAX_SLIP_MB = 4;
+const STEP_COLORS = ["var(--pink)", "var(--blue)", "var(--lime)", "var(--red)", "var(--purple)"];
 
 function dateList(min: string, max: string) {
   const out: string[] = [];
@@ -25,12 +29,9 @@ function dateList(min: string, max: string) {
   return out;
 }
 
-function formatThaiDate(date: string, opts: Intl.DateTimeFormatOptions) {
-  return new Date(`${date}T00:00:00Z`).toLocaleDateString("th-TH", { timeZone: "UTC", ...opts });
-}
-
 export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
   const dates = useMemo(() => dateList(minDate, maxDate), [minDate, maxDate]);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -113,7 +114,7 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
         throw new Error(json.error || "จองไม่สำเร็จ");
       }
       setDone({ bookingId: json.bookingId });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -123,182 +124,264 @@ export function BookingForm({ minDate, maxDate, price, promptpayId }: Props) {
 
   if (dates.length === 0) {
     return (
-      <div className="rounded-2xl border border-line bg-white p-6 text-center">
-        <p className="font-display text-xl text-ink">ปิดรับจองแล้ว</p>
-        <p className="mt-1 text-sm text-ink-soft">ขอบคุณทุกคนที่มาร่วมสนุกกับเรา 🎫</p>
-      </div>
-    );
-  }
-
-  if (done) {
-    const slot = slots?.find((s) => s.start === time);
-    return (
-      <div className="rounded-2xl border-2 border-dashed border-lotto bg-white p-6 text-center">
-        <p className="text-4xl">🎉</p>
-        <h3 className="mt-2 font-display text-2xl text-lotto">จองสำเร็จ!</h3>
-        <p className="mt-1 text-sm text-ink-soft">แคปหน้าจอนี้เก็บไว้ได้เลย ทีมงานจะตรวจสลิปและติดต่อกลับ</p>
-        <dl className="mx-auto mt-5 max-w-xs space-y-2 text-left text-sm">
-          <Row label="รหัสการจอง" value={done.bookingId} strong />
-          <Row label="ชื่อ" value={name} />
-          <Row label="วันที่" value={formatThaiDate(date, { dateStyle: "full" })} />
-          <Row label="เวลา" value={`${time}${slot ? `–${slot.end}` : ""} น.`} />
-        </dl>
+      <div className="pop-box rounded-2xl bg-cream p-6 text-center">
+        <p className="font-thai text-2xl font-bold text-navy">ปิดรับจองแล้ว</p>
+        <p className="mt-1 text-sm text-navy/70">ขอบคุณทุกคนที่มาร่วมสนุกกับเรา 🎫</p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <Step n={1} title="ข้อมูลผู้จอง">
-        <div className="space-y-3">
-          <Field label="ชื่อ">
-            <input
-              required
-              minLength={2}
-              maxLength={100}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="ชื่อ-นามสกุล หรือชื่อเล่น"
-              className="input"
-              autoComplete="name"
-            />
-          </Field>
-          <Field label="เบอร์โทร">
-            <input
-              required
-              type="tel"
-              inputMode="numeric"
-              pattern="0[0-9]{8,9}"
-              maxLength={10}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-              placeholder="08xxxxxxxx"
-              className="input"
-              autoComplete="tel"
-            />
-          </Field>
-        </div>
-      </Step>
-
-      <Step n={2} title="เลือกวันที่">
-        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-2">
-          {dates.map((d) => {
-            const active = d === date;
-            return (
-              <button
-                type="button"
-                key={d}
-                onClick={() => pickDate(d)}
-                className={`flex w-16 shrink-0 snap-start flex-col items-center rounded-xl border py-2 transition ${
-                  active ? "border-lucky bg-lucky text-white shadow" : "border-line bg-white text-ink hover:border-lucky/50"
-                }`}
-              >
-                <span className="text-xs">{formatThaiDate(d, { weekday: "short" })}</span>
-                <span className="font-display text-xl">{Number(d.slice(8))}</span>
-                <span className="text-xs">{formatThaiDate(d, { month: "short" })}</span>
-              </button>
-            );
-          })}
-        </div>
-      </Step>
-
-      <Step n={3} title="เลือกเวลา">
-        {slotsError ? (
-          <p className="text-sm text-lucky">
-            {slotsError}{" "}
-            <button type="button" className="underline" onClick={() => setReloadKey((k) => k + 1)}>
-              ลองใหม่
-            </button>
-          </p>
-        ) : !slots ? (
-          <div className="grid grid-cols-2 gap-2">
-            {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="h-14 animate-pulse rounded-xl bg-paper-deep" />
-            ))}
-          </div>
+    <div ref={topRef} className="scroll-mt-6">
+      <AnimatePresence mode="wait">
+        {done ? (
+          <Success key="done" bookingId={done.bookingId} name={name} date={date} time={time} slots={slots} />
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {slots.map((s) => {
-              const active = s.start === time;
-              return (
-                <button
-                  type="button"
-                  key={s.start}
-                  disabled={!s.available}
-                  onClick={() => setTime(s.start)}
-                  className={`rounded-xl border px-3 py-3 text-center transition ${
-                    !s.available
-                      ? "cursor-not-allowed border-line bg-paper-deep text-ink-soft/60 line-through"
-                      : active
-                        ? "border-lucky bg-lucky text-white shadow"
-                        : "border-line bg-white text-ink hover:border-lucky/50"
-                  }`}
+          <motion.form key="form" exit={{ opacity: 0, scale: 0.95 }} onSubmit={onSubmit} className="space-y-7">
+            <Step n={1} title="ข้อมูลผู้จอง">
+              <div className="space-y-3">
+                <Field label="ชื่อ">
+                  <input
+                    required
+                    minLength={2}
+                    maxLength={100}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="ชื่อ-นามสกุล หรือชื่อเล่น"
+                    className="input"
+                    autoComplete="name"
+                  />
+                </Field>
+                <Field label="เบอร์โทร">
+                  <input
+                    required
+                    type="tel"
+                    inputMode="numeric"
+                    pattern="0[0-9]{8,9}"
+                    maxLength={10}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    placeholder="08xxxxxxxx"
+                    className="input"
+                    autoComplete="tel"
+                  />
+                </Field>
+              </div>
+            </Step>
+
+            <Step n={2} title="เลือกวันที่">
+              <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pt-1 pb-3">
+                {dates.map((d) => {
+                  const active = d === date;
+                  const chip = thaiDateChip(d);
+                  return (
+                    <motion.button
+                      type="button"
+                      key={d}
+                      onClick={() => pickDate(d)}
+                      whileTap={{ scale: 0.9 }}
+                      animate={{ y: active ? -3 : 0, rotate: active ? -3 : 0 }}
+                      className={`flex w-16 shrink-0 snap-start flex-col items-center rounded-xl border-[3px] border-navy py-2 transition-colors ${
+                        active ? "bg-pink text-yellow shadow-[3px_3px_0_var(--navy)]" : "bg-white text-navy"
+                      }`}
+                    >
+                      <span className="font-thai text-xs font-semibold">{chip.weekday}</span>
+                      <span className="font-pop text-xl leading-tight">{chip.day}</span>
+                      <span className="font-thai text-xs">{chip.month}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </Step>
+
+            <Step n={3} title="เลือกเวลา (รอบละ 30 นาที)">
+              {slotsError ? (
+                <p className="text-sm font-semibold text-red">
+                  {slotsError}{" "}
+                  <button type="button" className="underline" onClick={() => setReloadKey((k) => k + 1)}>
+                    ลองใหม่
+                  </button>
+                </p>
+              ) : !slots ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <div key={i} className="h-16 animate-pulse rounded-xl border-[3px] border-navy/20 bg-white/60" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {slots.map((s, i) => {
+                    const active = s.start === time;
+                    return (
+                      <motion.button
+                        type="button"
+                        key={`${date}-${s.start}`}
+                        disabled={!s.available}
+                        onClick={() => setTime(s.start)}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0, scale: active ? 1.03 : 1 }}
+                        transition={{ type: "spring", bounce: 0.4, delay: i * 0.04 }}
+                        whileTap={s.available ? { scale: 0.94 } : undefined}
+                        className={`rounded-xl border-[3px] px-3 py-2.5 text-center transition-colors ${
+                          !s.available
+                            ? "cursor-not-allowed border-navy/25 bg-navy/5 text-navy/35"
+                            : active
+                              ? "border-navy bg-blue text-yellow shadow-[3px_3px_0_var(--pink)]"
+                              : "border-navy bg-white text-navy hover:bg-yellow/50"
+                        }`}
+                      >
+                        <span className={`font-pop text-lg ${!s.available ? "line-through" : ""}`}>
+                          {s.start}–{s.end}
+                        </span>
+                        <span className="block font-thai text-xs font-semibold">
+                          {s.available ? (active ? "เลือกแล้ว ✓" : "ว่าง") : s.past ? "หมดเวลาจอง" : "เต็มแล้ว"}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              )}
+            </Step>
+
+            <Step n={4} title="ชำระเงิน">
+              <PaymentQR promptpayId={promptpayId} amount={price} />
+            </Step>
+
+            <Step n={5} title="แนบสลิป">
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-[3px] border-dashed border-navy bg-white p-5 text-center transition-colors hover:bg-yellow/40">
+                <AnimatePresence mode="wait">
+                  {slipPreview ? (
+                    <motion.img
+                      key={slipPreview}
+                      src={slipPreview}
+                      alt="ตัวอย่างสลิป"
+                      initial={{ opacity: 0, rotate: -6, scale: 0.8 }}
+                      animate={{ opacity: 1, rotate: 2, scale: 1 }}
+                      className="max-h-64 rounded-lg border-[3px] border-navy"
+                    />
+                  ) : (
+                    <motion.div key="empty" className="flex flex-col items-center" exit={{ opacity: 0 }}>
+                      <motion.span
+                        className="text-4xl"
+                        animate={{ y: [0, -5, 0] }}
+                        transition={{ duration: 1.6, repeat: Infinity }}
+                      >
+                        🧾
+                      </motion.span>
+                      <span className="mt-2 text-sm font-semibold text-navy">แตะเพื่อเลือกรูปสลิป</span>
+                      <span className="text-xs text-navy/60">ไม่เกิน {MAX_SLIP_MB}MB</span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <input type="file" accept="image/*" className="sr-only" onChange={(e) => onSlipChange(e.target.files?.[0])} />
+              </label>
+              {slip && <p className="mt-2 truncate text-xs text-navy/70">{slip.name}</p>}
+            </Step>
+
+            <AnimatePresence>
+              {error && (
+                <motion.p
+                  initial={{ opacity: 0, x: 0 }}
+                  animate={{ opacity: 1, x: [0, -8, 8, -5, 5, 0] }}
+                  exit={{ opacity: 0 }}
+                  className="rounded-xl border-[3px] border-navy bg-red px-4 py-3 text-sm font-semibold text-white"
                 >
-                  <span className="font-display text-lg">
-                    {s.start}–{s.end}
-                  </span>
-                  <span className="block text-xs">{s.available ? "ว่าง" : s.past ? "หมดเวลาจอง" : "เต็มแล้ว"}</span>
-                </button>
-              );
-            })}
-          </div>
+                  {error}
+                </motion.p>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              type="submit"
+              disabled={submitting}
+              whileHover={{ scale: 1.02, rotate: -0.5 }}
+              className="pop-box pop-press w-full rounded-2xl bg-pink py-4 font-thai text-xl font-bold text-yellow disabled:opacity-60"
+            >
+              {submitting ? "กำลังส่ง..." : "ยืนยันการจอง 🎫"}
+            </motion.button>
+          </motion.form>
         )}
-      </Step>
+      </AnimatePresence>
+    </div>
+  );
+}
 
-      <Step n={4} title="ชำระเงิน">
-        <PaymentQR promptpayId={promptpayId} amount={price} />
-      </Step>
-
-      <Step n={5} title="แนบสลิป">
-        <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-line bg-white p-5 text-center hover:border-lucky/50">
-          {slipPreview ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={slipPreview} alt="ตัวอย่างสลิป" className="max-h-64 rounded-lg" />
-          ) : (
-            <>
-              <span className="text-3xl">🧾</span>
-              <span className="mt-2 text-sm text-ink-soft">แตะเพื่อเลือกรูปสลิป (ไม่เกิน {MAX_SLIP_MB}MB)</span>
-            </>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            className="sr-only"
-            onChange={(e) => onSlipChange(e.target.files?.[0])}
-          />
-        </label>
-        {slip && <p className="mt-2 truncate text-xs text-ink-soft">{slip.name}</p>}
-      </Step>
-
-      {error && <p className="rounded-lg bg-lucky/10 px-4 py-3 text-sm text-lucky-dark">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={submitting}
-        className="w-full rounded-2xl bg-lucky py-4 font-display text-lg text-white shadow-lg transition hover:bg-lucky-dark disabled:opacity-60"
+function Success({
+  bookingId,
+  name,
+  date,
+  time,
+  slots,
+}: {
+  bookingId: string;
+  name: string;
+  date: string;
+  time: string;
+  slots: Slot[] | null;
+}) {
+  const slot = slots?.find((s) => s.start === time);
+  const ticketNo = bookingId.replace(/[^0-9A-Z]/gi, "").slice(-6).toUpperCase();
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+      <motion.h3
+        initial={{ scale: 0.4, rotate: -10 }}
+        animate={{ scale: 1, rotate: -3 }}
+        transition={{ type: "spring", bounce: 0.6 }}
+        className="font-thai text-4xl font-bold text-pink [text-shadow:3px_3px_0_var(--navy)]"
       >
-        {submitting ? "กำลังส่ง..." : "ยืนยันการจอง"}
-      </button>
-    </form>
+        จองสำเร็จ! 🎉
+      </motion.h3>
+      <motion.div
+        initial={{ y: 80, rotate: 8, opacity: 0 }}
+        animate={{ y: 0, rotate: -2, opacity: 1 }}
+        transition={{ type: "spring", bounce: 0.45, delay: 0.15 }}
+        className="mt-6"
+      >
+        <LottoTicket color="yellow" number={ticketNo} dateLabel={englishDate(date)} draw={time} roll />
+      </motion.div>
+      <motion.dl
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="pop-box mt-8 space-y-2 rounded-2xl bg-cream p-5 text-left text-sm"
+      >
+        <Row label="รหัสการจอง" value={bookingId} strong />
+        <Row label="ชื่อ" value={name} />
+        <Row label="วันที่" value={thaiDateLong(date)} />
+        <Row label="เวลา" value={`${time}${slot ? `–${slot.end}` : ""} น.`} />
+      </motion.dl>
+      <p className="mt-4 text-sm font-semibold text-navy">📸 แคปหน้าจอนี้เก็บไว้ ทีมงานจะตรวจสลิปและติดต่อกลับ</p>
+    </motion.div>
   );
 }
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="min-w-0 rounded-2xl border border-line bg-white/70 p-4">
-      <legend className="flex items-center gap-2 px-1 font-display text-ink">
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold text-sm text-white">{n}</span>
+    <motion.fieldset
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ type: "spring", bounce: 0.3 }}
+      className="pop-box min-w-0 rounded-2xl bg-cream p-4 pt-2"
+    >
+      <legend className="flex items-center gap-2 rounded-full border-[3px] border-navy bg-white py-0.5 pr-3 pl-0.5 font-thai font-bold text-navy">
+        <span
+          className="flex h-7 w-7 items-center justify-center rounded-full font-pop text-sm text-white"
+          style={{ background: STEP_COLORS[(n - 1) % STEP_COLORS.length] }}
+        >
+          {n}
+        </span>
         {title}
       </legend>
-      {children}
-    </fieldset>
+      <div className="mt-2">{children}</div>
+    </motion.fieldset>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm text-ink-soft">{label}</span>
+      <span className="mb-1 block text-sm font-semibold text-navy">{label}</span>
       {children}
     </label>
   );
@@ -306,9 +389,9 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Row({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-line pb-2">
-      <dt className="text-ink-soft">{label}</dt>
-      <dd className={strong ? "font-display text-lucky" : "text-ink"}>{value}</dd>
+    <div className="flex justify-between gap-4 border-b-2 border-dashed border-navy/20 pb-2">
+      <dt className="text-navy/70">{label}</dt>
+      <dd className={strong ? "font-pop text-pink" : "font-semibold text-navy"}>{value}</dd>
     </div>
   );
 }
