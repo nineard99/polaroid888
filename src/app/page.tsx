@@ -66,7 +66,8 @@ export default function Home() {
           </span>
           <span className="font-thai">
             <span className="block font-bold">อยากถ่ายกับเพื่อน / ถ่ายเป็นกลุ่ม?</span>
-            <span className="block text-sm">ทักเพจ IG @{SHOP.instagram} มาคุยรายละเอียดเพิ่มเติมได้เลย</span>
+            <span className="block text-sm">ถ่ายพร้อมกันในรอบเดียว ให้ตัวแทน 1 คนจอง</span>
+            <span className="block text-sm">สอบถามเพิ่มเติม ทักเพจ IG @{SHOP.instagram} ได้เลย</span>
           </span>
         </a>
 
