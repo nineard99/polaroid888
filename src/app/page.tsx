@@ -55,6 +55,21 @@ export default function Home() {
       <main className="mx-auto w-full max-w-xl px-4 pt-10 pb-16">
         <Perks perks={perks} price={SHOP.price} />
 
+        <a
+          href={`https://instagram.com/${SHOP.instagram}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pop-box mt-5 flex items-center gap-3 rounded-2xl bg-lime px-4 py-3 text-navy transition-transform hover:-translate-y-0.5"
+        >
+          <span className="text-3xl" aria-hidden>
+            👯
+          </span>
+          <span className="font-thai">
+            <span className="block font-bold">อยากถ่ายกับเพื่อน / ถ่ายเป็นกลุ่ม?</span>
+            <span className="block text-sm">ทักเพจ IG @{SHOP.instagram} มาคุยรายละเอียดเพิ่มเติมได้เลย</span>
+          </span>
+        </a>
+
         <section className="mt-12">
           <h2 className="mb-6 font-thai text-4xl font-bold text-blue [text-shadow:3px_3px_0_var(--pink)]">
             จองคิวเลย!
